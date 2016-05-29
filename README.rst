@@ -15,7 +15,7 @@ Tokenize UK
 
 Simple python lib to tokenize texts into sentences and sentences to words. Small, fast and robust. Comes with ukrainian flavour 
 
-* Free software: ISC license
+* Free software: MIT license
 * Documentation: https://tokenize_uk.readthedocs.org.
 
 Features
