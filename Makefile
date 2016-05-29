@@ -49,14 +49,14 @@ lint:
 	flake8 tokenize_uk tests
 
 test:
-py.test
+	py.test
 
 
 test-all:
 	tox
 
 coverage:
-coverage run --source tokenize_uk py.test
+	coverage run --source tokenize_uk py.test
 
 	coverage report -m
 	coverage html

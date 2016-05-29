@@ -21,12 +21,6 @@ Simple python lib to tokenize texts into sentences and sentences to words. Small
 Features
 --------
 
-* TODO
-
-Credits
----------
-
-This package was created with Cookiecutter_ and the `audreyr/cookiecutter-pypackage`_ project template.
-
-.. _Cookiecutter: https://github.com/audreyr/cookiecutter
-.. _`audreyr/cookiecutter-pypackage`: https://github.com/audreyr/cookiecutter-pypackage
+* Tokenize given text into sentences
+* Tokenize given sentence into words
+* Works well with accented characters (like stresses)
