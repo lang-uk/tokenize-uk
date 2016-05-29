@@ -6,7 +6,7 @@ Tokenize UK
         :target: https://pypi.python.org/pypi/tokenize_uk
 
 .. image:: https://img.shields.io/travis/dchaplinsky/tokenize_uk.svg
-        :target: https://travis-ci.org/dchaplinsky/tokenize_uk
+        :target: https://travis-ci.org/lang-uk/tokenize-uk
 
 .. image:: https://readthedocs.org/projects/tokenize_uk/badge/?version=latest
         :target: https://readthedocs.org/projects/tokenize_uk/?badge=latest
@@ -23,4 +23,5 @@ Features
 
 * Tokenize given text into sentences
 * Tokenize given sentence into words
-* Works well with accented characters (like stresses)
+* Works well with accented characters (like stresses) and apostrophes
+* Suitable also for other languages
