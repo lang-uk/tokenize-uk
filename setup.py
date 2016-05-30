@@ -24,7 +24,7 @@ test_requirements = [
 
 setup(
     name='tokenize_uk',
-    version='0.1.4',
+    version='0.1.5',
     description="Simple python lib to tokenize texts into sentences and sentences to words. Small, fast and robust. Comes with ukrainian flavour ",
     long_description=readme + '\n\n' + history,
     author="Vsevolod Dyomkin, Dmitry Chaplinsky",
