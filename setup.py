@@ -29,7 +29,7 @@ setup(
     long_description=readme + '\n\n' + history,
     author="Vsevolod Dyomkin, Dmitry Chaplinsky",
     author_email='chaplinsky.dmitry@gmail.com',
-    url='https://github.com/dchaplinsky/tokenize_uk',
+    url='https://github.com/lang-uk/tokenize_uk',
     packages=[
         'tokenize_uk',
     ],

@@ -30,13 +30,13 @@ You can either clone the public repository:
 
 .. code-block:: console
 
-    $ git clone git://github.com/dchaplinsky/tokenize_uk
+    $ git clone git://github.com/lang-uk/tokenize_uk
 
 Or download the `tarball`_:
 
 .. code-block:: console
 
-    $ curl  -OL https://github.com/dchaplinsky/tokenize_uk/tarball/master
+    $ curl  -OL https://github.com/lang-uk/tokenize_uk/tarball/master
 
 Once you have a copy of the source, you can install it with:
 
@@ -45,5 +45,5 @@ Once you have a copy of the source, you can install it with:
     $ python setup.py install
 
 
-.. _Github repo: https://github.com/dchaplinsky/tokenize_uk
-.. _tarball: https://github.com/dchaplinsky/tokenize_uk/tarball/master
+.. _Github repo: https://github.com/lang-uk/tokenize_uk
+.. _tarball: https://github.com/lang-uk/tokenize_uk/tarball/master
