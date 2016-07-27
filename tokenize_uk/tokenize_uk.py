@@ -78,12 +78,13 @@ def tokenize_sents(string):
         if i == spans_count - 1:
             rez.append(string[off:spans[i].end()])
         elif tok[-1] in ['.', '!', '?', '…', '»']:
-            tok1 = tok[re.search('[.!?…»]', tok).start()]
+            tok1 = tok[re.search('[.!?…»]', tok).start()-1]
             next_tok = string[spans[i + 1].start():spans[i + 1].end()]
-            if (next_tok[0].isupper() and
-                not tok1.isupper() and
-                not (
-                    not tok[-1] == '.' or (tok1[0] == '(' or tok in ABBRS))):
+            if (next_tok[0].isupper()
+                and not tok1.isupper()
+                and not (tok[-1] != '.'
+                         or tok1[0] == '('
+                         or tok in ABBRS)):
                 rez.append(string[off:spans[i].end()])
                 off = spans[i + 1].start()
 
@@ -108,8 +109,10 @@ def tokenize_text(string):
         par = []
         for sent in tokenize_sents(part):
             par.append(tokenize_words(sent))
-        rez.append(par)
+        if par:
+            rez.append(par)
     return rez
+
 
 
 __all__ = [
