@@ -9,6 +9,7 @@
 from __future__ import unicode_literals
 import re
 import six
+from .utils import replace_non_breaking_space
 
 
 ACCENT = six.unichr(769)
@@ -41,6 +42,9 @@ ABBRS = """
 """.strip().split()
 
 
+
+
+
 def tokenize_words(string):
     """
     Tokenize input text to words.
@@ -51,6 +55,7 @@ def tokenize_words(string):
     :rtype: list of strings
     """
     string = six.text_type(string)
+    string = replace_non_breaking_space(string)
     return re.findall(WORD_TOKENIZATION_RULES, string)
 
 
@@ -64,6 +69,7 @@ def tokenize_sents(string):
     :rtype: list of strings
     """
     string = six.text_type(string)
+    string = replace_non_breaking_space(string)
 
     spans = []
     for match in re.finditer('[^\s]+', string):
@@ -103,6 +109,8 @@ def tokenize_text(string):
     :rtype: list of list of list of words
     """
     string = six.text_type(string)
+    string = replace_non_breaking_space(string)
+
     rez = []
     for part in string.split('\n'):
         par = []
