@@ -5,7 +5,7 @@ Credits
 Development Lead
 ----------------
 
-* Vsevolod Dyomkin, Dmitry Chaplinsky <chaplinsky.dmitry@gmail.com>
+* Vsevolod Dyomkin <vseloved@gmail.com>, Dmitry Chaplinsky <chaplinsky.dmitry@gmail.com>
 
 Contributors
 ------------
