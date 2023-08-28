@@ -505,3 +505,79 @@ class UkrainianWordTokenizer:
             parts.append(non_delim)
 
         return parts
+
+def tokenize_text(string: str) -> list[list[list[str]]]:
+    """
+    Tokenize input text to paragraphs, sentences and words.
+
+    Tokenization to paragraphs is done using simple Newline algorithm
+    For sentences and words tokenizers above are used
+
+    :param string: Text to tokenize
+    :type string: str or unicode
+    :return: text, tokenized into paragraphs, sentences and words
+    :rtype: list of list of list of words
+    """
+    tokenizer = UkrainianWordTokenizer()
+    tokens = tokenizer.tokenize(text=string)
+    paragraphs = []
+    sentences : list[list[str]] = []
+    current_sentence: list[str] = []
+    for w in tokens:
+        if w == " ":
+            continue
+        if w == ".":
+            current_sentence.append(w)
+            sentences.append(current_sentence)
+            current_sentence = []
+        elif w == "\n":
+            paragraphs.append(sentences)
+            sentences = []
+        else:
+            current_sentence.append(w)
+
+    if len(current_sentence) > 0:
+        sentences.append(current_sentence)
+    if len(sentences) > 0:
+        paragraphs.append(sentences)
+    return paragraphs
+
+def tokenize_words(string):
+    """
+    Tokenize input text to words.
+
+    :param string: Text to tokenize
+    :type string: str or unicode
+    :return: words
+    :rtype: list of strings
+    """
+    tokenizer = UkrainianWordTokenizer()
+    tokens = tokenizer.tokenize(text=string)
+    words = [w for w in tokens if w != ' ']
+    return words
+
+def tokenize_sents(string):
+    """
+    Tokenize input text to sentences.
+
+    :param string: Text to tokenize
+    :type string: str or unicode
+    :return: sentences
+    :rtype: list of strings
+    """
+    tokenizer = UkrainianWordTokenizer()
+    tokens = tokenizer.tokenize(text=string)
+    sentences = []
+    current_sentence = ""
+    for w in tokens:
+        if w != ".":
+            current_sentence += w
+        else:
+            sentences.append(current_sentence)
+            current_sentence = ""
+    if current_sentence != "":
+        sentences.append(current_sentence)
+    return sentences
+
+__all__ = [
+    "tokenize_words", "tokenize_text", "tokenize_sents", "UkrainianWordTokenizer"]
