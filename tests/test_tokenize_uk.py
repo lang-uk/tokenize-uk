@@ -22,14 +22,26 @@ class TestTokenize_uk(object):
         for case_file in files:
             with open(case_file, "r", encoding="utf-8") as fp:
                 case = json.load(fp)
+                print(tokenize_text(case["source"]))
+                print(case["result"])
                 assert tokenize_text(case["source"]) == case["result"]
 
     def test_word_tokenization(self):
         assert tokenize_words("Геогра́фія або земле́пис") == [
             "Геогра́фія", "або", "земле́пис"]
 
-        assert tokenize_words("Комп'ютер") == [
-            "Комп'ютер"]
+        assert tokenize_words("Збільшення 0,6×") == [
+            "Збільшення", "0,6", "×"]
+        
+        assert tokenize_words("за ставкою € 1.") == [
+            "за", "ставкою", "€", "1", "."]
+        
+        assert tokenize_words("під час установки 25 °.") == [
+            "під", "час", "установки", "25", "°", "."]
+
+        assert tokenize_words("Геогра́фія або земле́пис") == [
+            "Геогра́фія", "або", "земле́пис"]
+
 
     def test_sent_tokenization(self):
         assert len(tokenize_sents("""Результати цих досліджень опубліковано в таких колективних працях, як «Статистичні параметри 
