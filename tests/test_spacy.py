@@ -58,3 +58,31 @@ class SpacyIntegrationTest(unittest.TestCase):
             self.assertEqual(
                 [t.text for t in self.nlp(text)], [t.text for t in nlp2(text)]
             )
+
+    def test_fresh_process_load_via_entry_points(self):
+        """spacy.load() must reconstruct the pipeline in a process that
+        never imported tokenize_uk.spacy — this is exactly what the
+        spacy_factories / spacy_tokenizers entry points promise, and it
+        only works when the package is installed (pip install -e .)."""
+        import importlib.metadata
+        import subprocess
+        import sys
+
+        eps = importlib.metadata.entry_points(group="spacy_tokenizers")
+        if not any(e.name == "tokenize_uk.UkrainianTokenizer.v1" for e in eps):
+            self.skipTest("package not installed; entry points inactive")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            self.nlp.to_disk(tmp)
+            code = (
+                "import spacy; nlp = spacy.load(%r); "
+                "doc = nlp('Це проф. Артюхов. Він тут.'); "
+                "print('|'.join(s.text for s in doc.sents))" % tmp
+            )
+            result = subprocess.run(
+                [sys.executable, "-c", code], capture_output=True, text=True
+            )
+            self.assertEqual(0, result.returncode, result.stderr)
+            self.assertEqual(
+                "Це проф. Артюхов.|Він тут.", result.stdout.strip()
+            )
