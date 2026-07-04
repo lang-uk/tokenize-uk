@@ -2,11 +2,16 @@ import regex as re
 
 SPLIT_CHARS: str = (
     "(!{2,3}|\\?{2,3}|\\.{3}|[!?][!?.]{1,2}" + "|[\u0020\u00A0\\n\\r\\t"
-    ",.;!?\u2014:()\\[\\]{}<>/|\\\\…°$€₴=¿¡]"  # what about: №§
+    ",.;!?\u2014\u2015:()\\[\\]{}<>/|\\\\…°$€₴=№§¿¡~×]"
     + "|%(?![-\u2013][а-яіїєґ])"  # allow 5%-й
+    + "|(?<=[а-яіїєґА-ЯІЇЄҐ])[\u00B9\u00B2\u2070-\u2079]"  # superscript for regular words only
+    # preserve * and _ inside words (sometimes used instead of apostrophe or to mask
+    # profane words) but split if it is the beginning or end of the word
+    + "|(?<![а-яіїєґА-ЯІЇЄҐa-zA-Z])[_*]+"
+    + "|[_*]+(?![а-яіїєґА-ЯІЇЄҐa-zA-Z0-9])"
     + '|(?<!\uE109)["«»„”“]'
     + "|[\u2000-\u200F"  # quotes have special cases
-    + "\u201A\u2020-\u202F\u2030\u2031\u2033-\u206F"
+    + "\u201A\u2020-\u202F\u2030-\u206F"
     + "\u2400-\u27FF"  # TODO: Verify Control Pictures
     # + String.valueOf(Character.toChars(0x1F000))
     + chr(0x1F000) + "-"
@@ -82,13 +87,6 @@ DOTTED_NUMBERS_REPL: str = rf"\1{NON_BREAKING_DOT_SUBST}\2"
 COLON_NUMBERS_PATTERN: re.Pattern = re.compile(r"([\d]):([\d])")
 COLON_NUMBERS_REPL: str = rf"\1{NON_BREAKING_COLON_SUBST}\2"
 
-# dates
-DATE_PATTERN: re.Pattern = re.compile(
-    r"([\d]{2})\.([\d]{2})\.([\d]{4})|([\d]{4})\.([\d]{2})\.([\d]{2})|([\d]{4})-([\d]{2})-([\d]{2})",
-    re.I | re.U,
-)
-DATE_PATTERN_REPL: str = rf"\1{NON_BREAKING_DOT_SUBST}\2{NON_BREAKING_DOT_SUBST}\3"
-
 # braces in words
 BRACE_IN_WORD_PATTERN: re.Pattern = re.compile("([а-яіїєґ])\\(([а-яіїєґ']+)\\)", re.I | re.U)
 
@@ -101,13 +99,15 @@ ABBR_DOT_VO_PATTERN3: re.Pattern = re.compile("(ч|ст)\\.([" + HORIZONTAL_SPAC
 # ABBR_DOT_VO_PATTERN4: re.Pattern = re.compile("(р)\\.([\\s\u00A0\u202F]*х)\\.")
 ABBR_DOT_TYS_PATTERN1: re.Pattern = re.compile("([0-9IІ][" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]+)(тис|арт)\\.")
 ABBR_DOT_TYS_PATTERN2: re.Pattern = re.compile("(тис|арт)\\.([" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]+[а-яіїєґ0-9])")
-ABBR_DOT_ART_PATTERN: re.Pattern = re.compile("([Аа]рт|[Мм]ал|[Рр]ис)\\.([" + HORIZONTAL_SPACE + "]*[0-9])")
+ABBR_DOT_ART_PATTERN: re.Pattern = re.compile(
+    "([Аа]рт|[Мм]ал|[Рр]ис|[Сс]пр)\\.([" + HORIZONTAL_SPACE + "]*(№[" + HORIZONTAL_SPACE + "]*)?[0-9])"
+)
 ABBR_DOT_MAN_PATTERN: re.Pattern = re.compile("(Ман)\\.([" + HORIZONTAL_SPACE + "]*(Сіті|[Юю]н))")
 ABBR_DOT_LAT_PATTERN: re.Pattern = re.compile(
     "([^а-яіїєґА-ЯІЇЄҐ'\u0301-]лат)\\.([" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]+[a-zA-Z])"
 )
 ABBR_DOT_PROF_PATTERN: re.Pattern = re.compile(
-    "(?<![а-яіїєґА-ЯІЇЄҐ'\u0301-])([Аа]кад|[Пп]роф|[Дд]оц|[Аа]сист|[Аа]рх|тов|вул|о|р|ім|упоряд|[Пп]реп|Ів|Дж)\\.(["
+    "(?<![а-яіїєґА-ЯІЇЄҐ'\u0301-])([Аа]кад|[Пп]роф|[Дд]оц|[Аа]сист|[Аа]рх|ап|тов|вул|бул|бульв|о|р|ім|упорядн?|др|[Пп]реп|Ів|Дж|Ол|[сС]вт|Авг)\\.(["
     + HORIZONTAL_SPACE
     + VERTICAL_SPACE
     + "]+[А-ЯІЇЄҐа-яіїєґ])"
@@ -116,6 +116,8 @@ ABBR_DOT_GUB_PATTERN: re.Pattern = re.compile(
     "(.[А-ЯІЇЄҐ][а-яіїєґ'-]+[" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]+губ)\\."
 )
 ABBR_DOT_DASH_PATTERN: re.Pattern = re.compile(r"\b([А-ЯІЇЄҐ]ж?)\.([-\u2013]([А-ЯІЇЄҐ][а-яіїєґ']{2}|[А-ЯІЇЄҐ]\.))")
+
+ABBR_DOT_CHL_KOR_PATTERN: re.Pattern = re.compile(r"(чл)\.(-кор)\.")
 
 
 # tokenize initials with dot before last name, e.g. "А.", "Ковальчук"
@@ -170,29 +172,30 @@ ONE_DOT_TWO_REPL: str = rf"\1{NON_BREAKING_DOT_SUBST}{BREAKING_PLACEHOLDER}\2"
 
 # скорочення що не можуть бути в кінці речення
 ABBR_DOT_NON_ENDING_PATTERN: re.Pattern = re.compile(
-      r"(?<![а-яіїєґА-ЯІЇЄҐ'\u0301-])(абз|австрал|амер|англ|акад(ем)?|арк|ауд|бл(?:изьк)?|буд|в(?!\.+)|вип|вірм|грец(?:ьк)"
-    + r"|держ|див|діал|дод|дол|досл|доц|доп|екон|ел|жін|зав|заст|зах|зб|зв|зневажл?|зовн|ім|івр|ісп|іст|італ"
-    + r"|к|каб|каф|канд|кв|[1-9]-кімн|кімн|кл|кн|коеф|латин|мал|моб|н|[Нн]апр|нац|образн|оп|оф|п|пен|перекл|перен|пл|пол|пов|пор|поч|пп|прибл|прикм|прим|присл|пров|пром|просп"
-    + r"|[Рр]ед|[Рр]еж|розд|розм|рт|рум|с|[Сс]вв?|скор|соц|співавт|[сС]т|стор|сх|табл|тт|[тТ]ел|техн|укр|філол|фр|франц|худ|ч|чайн|част|ц|яп)\.(?!" + NON_BREAKING_PLACEHOLDER2 + r"|\.+["
+      r"(?<![а-яіїєґА-ЯІЇЄҐ'\u0301-])(абз|австрал|ам|амер|англ|акад(ем)?|арк|ауд|біол|бл(?:изьк)?|болг|буд|в(?!\.+)|вип|вірм|грец(?:ьк)?"
+    + r"|держ|див|дир|діал|дод|дол|досл|доц|доп|екон|ел|жін|зав|заст|зах|зб|зв|зневажл?|зовн|іл|ім|івр|інж|ісп|іст|італ"
+    + r"|к|каб|каф|канд|кв|[1-9]-кімн|кімн|кін|кл|кн|коеф|крим|латин|мал|моб|н|[Нн]апр|нач|нім|нац|нпр|образн|оз|оп|оф|п|пен|перекл|перен|пл|пол|пом|пор|порівн|[Пп]оч|пп|прибл|прикм|прим|присл|пров|пром|просп"
+    + r"|[Рр]ед|[Рр]еж|розд|розм|рос|рт|рум|с|санскр|[Сс]вв?|скор|соц|співавт|[сС]т|стор|суч|сх|табл|тт|[тТ]ел|техн|укр|філол|фр|франц|худ|[цЦ]ит|ч|чайн|част|ц|яп|япон)\.(?!" + NON_BREAKING_PLACEHOLDER2 + r"|\.+["
     + HORIZONTAL_SPACE
     + VERTICAL_SPACE
     + "]*$)"
 )
-
-  # private static final Pattern ABBR_DOT_NON_ENDING_PATTERN = Pattern.compile(
-  #       "(?<![а-яіїєґА-ЯІЇЄҐ'\u0301-])(абз|австрал|амер|англ|акад(ем)?|арк|ауд|бл(?:изьк)?|буд|в(?!\\.+)|вип|вірм|грец(?:ьк)"
-  #     + "|держ|див|діал|дод|дол|досл|доц|доп|екон|ел|жін|зав|заст|зах|зб|зв|зневажл?|зовн|ім|івр|ісп|іст|італ"
-  #     + "|к|каб|каф|канд|кв|[1-9]-кімн|кімн|кл|кн|коеф|латин|мал|моб|н|[Нн]апр|нац|образн|оп|оф|п|пен|перекл|перен|пл|пол|пов|пор|поч|пп|прибл|прикм|прим|присл|пров|пром|просп"
-  #     + "|[Рр]ед|[Рр]еж|розд|розм|рт|рум|с|[Сс]вв?|скор|соц|співавт|[сС]т|стор|сх|табл|тт|[тТ]ел|техн|укр|філол|фр|франц|худ|ч|чайн|част|ц|яп)\\.(?!\uE120|\\.+[\\h\\v]*$)");
 
 
 ABBR_DOT_NON_ENDING_PATTERN_2: re.Pattern = re.compile(
     r"([^а-яіїєґА-ЯІЇЄҐ'-]м\.)([" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]*[А-ЯІЇЄҐ])"
 )
 
+ABBR_DOT_NAR_PATTERN_1: re.Pattern = re.compile(
+    "(([0-9]|рік|[рp]\\.|[-–—])[" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]+нар)\\."
+)
+ABBR_DOT_NAR_PATTERN_2: re.Pattern = re.compile(
+    r"\b(нар)\.([" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]+[0-9а-яіїєґ])"
+)
+
 # скорочення що можуть бути в кінці речення
 ABBR_DOT_ENDING_PATTERN: re.Pattern = re.compile(
-    rf"([^а-яіїєґА-ЯІЇЄҐ'\u0301-]((та|й|і) (інш?|под)|атм|відс|гр|коп|обл|р|рр|РР|руб|ст|стол|стор|чол|шт))\.(?!{NON_BREAKING_PLACEHOLDER2})"
+    rf"([^а-яіїєґА-ЯІЇЄҐ'\u0301-]((та|й|і) (інш?|под)|атм|відс|гр|коп|дес|дол|обл|пов|р|рр|РР|руб|ст|стст|стол|стор|чол|шт))\.(?!{NON_BREAKING_PLACEHOLDER2})"
 )
 ABBR_DOT_I_T_P_PATTERN: re.Pattern = re.compile(
     "([ій][" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]+т\.)([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]*(д|п|ін)\.)"
@@ -201,7 +204,7 @@ ABBR_DOT_I_T_P_PATTERN: re.Pattern = re.compile(
 ABBR_DOT_I_T_CH_PATTERN: re.Pattern = re.compile("([ву][" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]+т\.)([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]*ч\.)")
 
 ABBR_DOT_T_ZV_PATTERN: re.Pattern = re.compile(
-    "([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]+т\.)([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]*зв\.)"
+    "([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"\(]+т\.)([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]*зв\.)"
 )
 
 ABBR_AT_THE_END: re.Pattern = re.compile(
@@ -223,7 +226,9 @@ COMPOUND_WITH_QUOTES2: re.Pattern = re.compile(r'([«"„])([а-яіїєґ0-9\'-
 # Сьогодні (у четвер. - Ред.), вранці.
 ABBR_DOT_PATTERN8: re.Pattern = re.compile(r"([\s\u00A0\u202F]+[–—-][\s\u00A0\u202F]+(?:[Рр]ед|[Аа]вт))\.([\)\]])")
 ABBR_DOT_RED_AVT_PATTERN: re.Pattern = re.compile(
-    "([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]+(?:[Рр]ед|[Аа]вт))\.([\)\]])"
+    "([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]+(?:[Рр]ед|[Аа]вт))\.(["
+    + HORIZONTAL_SPACE
+    + r"]*[)\]а-яіїєґ])"
 )
 
 SOFT_HYPHEN_WRAP: str = "\u00AD\n"
@@ -248,8 +253,14 @@ NUMBER_MISSING_SPACE: re.Pattern = re.compile(
     "((?:["
     + HORIZONTAL_SPACE
     + VERTICAL_SPACE
-    + "\uE110]|^)(?!(?:[кдсмн]|мк)?м[23])[а-яїієґА-ЯІЇЄҐ'-]*[а-яїієґ]'?[а-яїієґ])([0-9]+(?![а-яіїєґА-ЯІЇЄҐa-zA-Z»\"“]))"
+    + "\uE110]|^)[а-яїієґА-ЯІЇЄҐ'-]*[а-яїієґ']?[а-яїієґ])([0-9]+(?![а-яіїєґА-ЯІЇЄҐa-zA-Z»\"“]))"
 )
+
+WEB_ENTITIES: re.Pattern = re.compile(
+    r"([а-яіїєґ])\.(НЕТ|net|Інфо|Info|City|Life|UA|юа|лі|media|com|фм|ru|ру|орг)\b",
+    re.I | re.U,
+)
+WEB_ENTITIES2: re.Pattern = re.compile(r"\.([a-z_-]+)\.(ua)", re.I)
 
 
 class UkrainianWordTokenizer:
@@ -368,10 +379,11 @@ class UkrainianWordTokenizer:
         if (
             dot_inside_sentence or dot_index == len(text_rtrimmed) - 1 and ABBR_AT_THE_END.search(text)
         ):  # ugly - special case for тис. та ініціалів
-            text = DATE_PATTERN.sub(DATE_PATTERN_REPL, text)
-
             text = DOTTED_NUMBERS_PATTERN3.sub(rf"\1.{NON_BREAKING_PLACEHOLDER2}\2.{NON_BREAKING_PLACEHOLDER2}\3", text)
             text = DOTTED_NUMBERS_PATTERN.sub(rf"\1.{NON_BREAKING_PLACEHOLDER2}\2", text)
+
+            text = ABBR_DOT_NAR_PATTERN_1.sub(rf"\1.{NON_BREAKING_BREAKING_PLACEHOLDER}", text)
+            text = ABBR_DOT_NAR_PATTERN_2.sub(rf"\1.{NON_BREAKING_BREAKING_PLACEHOLDER}\2", text)
 
             text = ABBR_DOT_2_SMALL_LETTERS_PATTERN.sub(rf"\1.{NON_BREAKING_BREAKING_PLACEHOLDER}\2.{NON_BREAKING_BREAKING_PLACEHOLDER}", text)
             text = ABBR_DOT_VO_PATTERN1.sub(ABBR_DOT_2_SMALL_LETTERS_REPL, text)
@@ -395,6 +407,9 @@ class UkrainianWordTokenizer:
             text = ABBR_DOT_S_G_PATTERN.sub(
                 "\\1" + NON_BREAKING_DOT_SUBST + "\\2" + NON_BREAKING_DOT_SUBST + BREAKING_PLACEHOLDER, text
             )
+            text = ABBR_DOT_CHL_KOR_PATTERN.sub(
+                rf"\1.{NON_BREAKING_PLACEHOLDER2}\2.{NON_BREAKING_BREAKING_PLACEHOLDER}", text
+            )
             text = ABBR_DOT_PN_ZAH_PATTERN.sub(rf"\1.{NON_BREAKING_BREAKING_PLACEHOLDER}\2.{NON_BREAKING_BREAKING_PLACEHOLDER}", text)
             text = ABBR_DOT_I_T_P_PATTERN.sub(rf"\1{NON_BREAKING_BREAKING_PLACEHOLDER}\2{NON_BREAKING_BREAKING_PLACEHOLDER}", text)
             text = ABBR_DOT_I_T_CH_PATTERN.sub(rf"\1{NON_BREAKING_BREAKING_PLACEHOLDER}\2{NON_BREAKING_BREAKING_PLACEHOLDER}", text)
@@ -404,11 +419,9 @@ class UkrainianWordTokenizer:
             text = ABBR_DOT_NON_ENDING_PATTERN_2.sub(rf"\1{NON_BREAKING_BREAKING_PLACEHOLDER}\2", text)
             text = INVALID_MLN_DOT_PATTERN.sub(rf"\1.{NON_BREAKING_BREAKING_PLACEHOLDER}\2", text)
 
-        # preserve * inside words (sometimes used instead of apostrophe or to mask profane words)
-        # but split if it's the beginning or end of the word (often used for mark-up and footnotes)
-        if "*" in text:
-            text = re.sub("((?:^|[^а-яіїєґА-ЯІЇЄҐ])\\*+)([а-яіїєґА-ЯІЇЄҐ])", "\\1" + BREAKING_PLACEHOLDER + "\\2", text)
-            text = re.sub("([а-яіїєґА-ЯІЇЄҐ])(\\*+(?:[^а-яіїєґА-ЯІЇЄҐ]|$))", "\\1" + BREAKING_PLACEHOLDER + "\\2", text)
+        if dot_inside_sentence:
+            text = WEB_ENTITIES.sub(rf"\1.{NON_BREAKING_PLACEHOLDER2}\2", text)
+            text = WEB_ENTITIES2.sub(rf".{NON_BREAKING_PLACEHOLDER2}\1.{NON_BREAKING_PLACEHOLDER2}\2", text)
 
         text = ABBR_DOT_ENDING_PATTERN.sub(rf"\1.{NON_BREAKING_BREAKING_PLACEHOLDER}", text)
 
@@ -463,7 +476,15 @@ class UkrainianWordTokenizer:
             text = APOSTROPHE_END_PATTER.sub("\\1" + BREAKING_PLACEHOLDER + "'\\2", text)
 
         if "+" in text:
-            text = re.sub("\\+(?=[а-яіїєґА-ЯІЇЄҐ])", BREAKING_PLACEHOLDER + "+" + BREAKING_PLACEHOLDER, text)
+            text = re.sub("\\+(?=[а-яіїєґА-ЯІЇЄҐ0-9])", BREAKING_PLACEHOLDER + "+" + BREAKING_PLACEHOLDER, text)
+
+        # -20C
+        if len(text) > 1 and ("-" in text or "\u2013" in text):
+            text = re.sub(
+                "(?<=^|[" + HORIZONTAL_SPACE + VERTICAL_SPACE + "])([-\u2013])(?=[0-9])",
+                rf"\1{BREAKING_PLACEHOLDER}",
+                text,
+            )
 
         text = NUMBER_MISSING_SPACE.sub("\\1" + BREAKING_PLACEHOLDER + "\\2", text)
 

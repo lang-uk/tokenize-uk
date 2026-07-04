@@ -84,6 +84,10 @@ class TokenizeUkTest(unittest.TestCase):
         test_list = self.tokenizer.tokenize("відбулася 17.8.1245")
         self.assertEqual(["відбулася", " ", "17.8.1245"], test_list)
 
+    def test_dotted_dates(self):
+        test_list: list[str] = self.tokenizer.tokenize("1814.03.09")
+        self.assertEqual(["1814.03.09"], test_list)
+
     def test_numbersmissingspace(self):
         test_list: list[str] = self.tokenizer.tokenize("від 12 до14 років")
         self.assertEqual(["від", " ", "12", " ", "до", "14", " ", "років"], test_list)
@@ -101,14 +105,23 @@ class TokenizeUkTest(unittest.TestCase):
         self.assertEqual(["«", "Мак2", "»"], test_list)
 
         test_list = self.tokenizer.tokenize("км2")
-        self.assertEqual(["км2"], test_list)
+        self.assertEqual(["км", "2"], test_list)
+
+        test_list = self.tokenizer.tokenize("Мі17")
+        self.assertEqual(["Мі", "17"], test_list)
 
         test_list = self.tokenizer.tokenize("000ххх000")
         self.assertEqual(["000ххх000"], test_list)
 
     def test_plus(self):
         test_list: list[str] = self.tokenizer.tokenize("+20")
-        self.assertEqual(["+20"], test_list)
+        self.assertEqual(["+", "20"], test_list)
+
+        test_list = self.tokenizer.tokenize("-20")
+        self.assertEqual(["-", "20"], test_list)
+
+        test_list = self.tokenizer.tokenize("\u201320")
+        self.assertEqual(["\u2013", "20"], test_list)
 
         test_list = self.tokenizer.tokenize("прислівник+займенник")
         self.assertEqual(["прислівник", "+", "займенник"], test_list)
@@ -157,6 +170,32 @@ class TokenizeUkTest(unittest.TestCase):
         test_list = self.tokenizer.tokenize('п"яний')
         self.assertEqual(['п"яний'], test_list)
 
+        test_list = self.tokenizer.tokenize("▶Трансформація")
+        self.assertEqual(["▶", "Трансформація"], test_list)
+
+        test_list = self.tokenizer.tokenize("усмішку😁")
+        self.assertEqual(["усмішку", "😁"], test_list)
+
+        test_list = self.tokenizer.tokenize("5′")  # U+2032
+        self.assertEqual(["5", "′"], test_list)
+
+        test_list = self.tokenizer.tokenize("'⚪'")  # U+26AA
+        self.assertEqual(["'", "⚪", "'"], test_list)
+
+    def test_superscript(self):
+        test_list: list[str] = self.tokenizer.tokenize("дружини¹")
+        self.assertEqual(["дружини", "¹"], test_list)
+
+        test_list = self.tokenizer.tokenize("X²")
+        self.assertEqual(["X²"], test_list)
+
+    def test_tokenize_markdown(self):
+        test_list: list[str] = self.tokenizer.tokenize("_60-річний_")
+        self.assertEqual(["_", "60-річний", "_"], test_list)
+
+        test_list = self.tokenizer.tokenize("**25 жінок України:**")
+        self.assertEqual(["**", "25", " ", "жінок", " ", "України", ":", "**"], test_list)
+
         test_list = self.tokenizer.tokenize("Веретениця**")
         self.assertEqual(["Веретениця", "**"], test_list)
 
@@ -166,14 +205,30 @@ class TokenizeUkTest(unittest.TestCase):
         test_list = self.tokenizer.tokenize("*Оренбург")
         self.assertEqual(["*", "Оренбург"], test_list)
 
-        test_list = self.tokenizer.tokenize("▶Трансформація")
-        self.assertEqual(["▶", "Трансформація"], test_list)
-
-        test_list = self.tokenizer.tokenize("усмішку😁")
-        self.assertEqual(["усмішку", "😁"], test_list)
-
         test_list = self.tokenizer.tokenize("з*ясував")
         self.assertEqual(["з*ясував"], test_list)
+
+        test_list = self.tokenizer.tokenize("#робота_редактора")
+        self.assertEqual(["#робота_редактора"], test_list)
+
+        test_list = self.tokenizer.tokenize(
+            "https://uk.wikipedia.org/wiki/Список_аеропортів_України"
+        )
+        self.assertEqual(["https://uk.wikipedia.org/wiki/Список_аеропортів_України"], test_list)
+
+        test_list = self.tokenizer.tokenize("ОСОБА_5")
+        self.assertEqual(["ОСОБА_5"], test_list)
+
+    def test_web_entities(self):
+        entities = [
+            "Паляниця.Інфо", "Житомир.info", "Жмеринка.City", "Ліга.Life",
+            "ЛІГА.net", "Точка.net", "Цензор.НЕТ", "Гайдамака.UA",
+            "Тиждень.ua", "Срана.юа", "Рагу.лі", "МК.ru", "Лента.Ру",
+            "Слух.media", "Олігарх.com", "блогер.фм", "ЗМІ.ck.ua",
+            "Закарпаття.depo.ua",
+        ]
+        for entity in entities:
+            self.assertEqual([entity], self.tokenizer.tokenize(entity))
 
     def test_initials(self):
         test_list: list[str] = self.tokenizer.tokenize("Засідав І.Єрмолюк.")
@@ -309,7 +364,7 @@ class TokenizeUkTest(unittest.TestCase):
         self.assertEqual(["На", " ", "висоті", " ", "4000", " ", "м", "..."], test_list)
 
         test_list = self.tokenizer.tokenize("№47 (м. Слов'янськ)")
-        self.assertEqual(["№47", " ", "(", "м.", " ", "Слов'янськ", ")"], test_list)
+        self.assertEqual(["№", "47", " ", "(", "м.", " ", "Слов'янськ", ")"], test_list)
 
         test_list = self.tokenizer.tokenize("с.-г.")
         self.assertEqual(["с.-г."], test_list)
@@ -440,6 +495,89 @@ class TokenizeUkTest(unittest.TestCase):
 
     #    test_list = self.tokenizer.tokenize("30.04.10р.")
     #    self.assertEqual(["30.04.10", "р."], test_list)
+
+
+        test_list = self.tokenizer.tokenize("\u2015оповідання")
+        self.assertEqual(["\u2015", "оповідання"], test_list)
+
+        test_list = self.tokenizer.tokenize("чл.-кор. Артюхов")
+        self.assertEqual(["чл.-кор.", " ", "Артюхов"], test_list)
+
+        test_list = self.tokenizer.tokenize("ам. долл")
+        self.assertEqual(["ам.", " ", "долл"], test_list)
+
+        test_list = self.tokenizer.tokenize("4 дол.")
+        self.assertEqual(["4", " ", "дол."], test_list)
+
+        test_list = self.tokenizer.tokenize("св. ап. Петра")
+        self.assertEqual(["св.", " ", "ап.", " ", "Петра"], test_list)
+
+        test_list = self.tokenizer.tokenize("оз. Вижва")
+        self.assertEqual(["оз.", " ", "Вижва"], test_list)
+
+        test_list = self.tokenizer.tokenize("(т. зв. сальон)")
+        self.assertEqual(["(", "т.", " ", "зв.", " ", "сальон", ")"], test_list)
+
+        test_list = self.tokenizer.tokenize("отримав рос. орден")
+        self.assertEqual(["отримав", " ", "рос.", " ", "орден"], test_list)
+
+        test_list = self.tokenizer.tokenize("яку авт. устиг")
+        self.assertEqual(["яку", " ", "авт.", " ", "устиг"], test_list)
+
+        test_list = self.tokenizer.tokenize("пише ред. Бойків")
+        self.assertEqual(["пише", " ", "ред.", " ", "Бойків"], test_list)
+
+        # нар. - complicated
+        test_list = self.tokenizer.tokenize("рік нар. невідомий")
+        self.assertEqual(["рік", " ", "нар.", " ", "невідомий"], test_list)
+
+        test_list = self.tokenizer.tokenize("нар. 1945")
+        self.assertEqual(["нар.", " ", "1945"], test_list)
+
+        test_list = self.tokenizer.tokenize("(1995 р. нар.)")
+        self.assertEqual(["(", "1995", " ", "р.", " ", "нар.", ")"], test_list)
+
+        test_list = self.tokenizer.tokenize("нар. бл. 1720")
+        self.assertEqual(["нар.", " ", "бл.", " ", "1720"], test_list)
+
+        test_list = self.tokenizer.tokenize("(нар. у серпні 1904)")
+        self.assertEqual(["(", "нар.", " ", "у", " ", "серпні", " ", "1904", ")"], test_list)
+
+        test_list = self.tokenizer.tokenize("977 — нар. Кріс Мартін")
+        self.assertEqual(["977", " ", "—", " ", "нар.", " ", "Кріс", " ", "Мартін"], test_list)
+
+        test_list = self.tokenizer.tokenize("Ради нар. депутатів")
+        self.assertEqual(["Ради", " ", "нар.", " ", "депутатів"], test_list)
+
+        test_list = self.tokenizer.tokenize("нар. арт.")
+        self.assertEqual(["нар.", " ", "арт", "."], test_list)
+
+        test_list = self.tokenizer.tokenize("біля нар. Сумно")
+        self.assertEqual(["біля", " ", "нар", ".", " ", "Сумно"], test_list)
+
+        test_list = self.tokenizer.tokenize("- Вибори-2019")
+        self.assertEqual(["-", " ", "Вибори-2019"], test_list)
+
+        test_list = self.tokenizer.tokenize("порівн. з англ")
+        self.assertEqual(["порівн.", " ", "з", " ", "англ"], test_list)
+
+        test_list = self.tokenizer.tokenize("поч. 1945 - кін. 1946")
+        self.assertEqual(["поч.", " ", "1945", " ", "-", " ", "кін.", " ", "1946"], test_list)
+
+        test_list = self.tokenizer.tokenize("Поч. XX ст.")
+        self.assertEqual(["Поч.", " ", "XX", " ", "ст."], test_list)
+
+        test_list = self.tokenizer.tokenize("Чигиринський пов. Такої губернії")
+        self.assertEqual(["Чигиринський", " ", "пов.", " ", "Такої", " ", "губернії"], test_list)
+
+        test_list = self.tokenizer.tokenize("Чигиринський пов.")
+        self.assertEqual(["Чигиринський", " ", "пов."], test_list)
+
+        test_list = self.tokenizer.tokenize("З пов. Горобець")
+        self.assertEqual(["З", " ", "пов.", " ", "Горобець"], test_list)
+
+        test_list = self.tokenizer.tokenize("пом. 1994")
+        self.assertEqual(["пом.", " ", "1994"], test_list)
 
     def test_brackets(self):
         # скорочення
