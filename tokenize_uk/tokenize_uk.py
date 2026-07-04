@@ -229,6 +229,20 @@ ABBR_DOT_RED_AVT_PATTERN: re.Pattern = re.compile(
     + r"]*[)\]а-яіїєґ])"
 )
 
+# 1:1 character canonicalizations applied before tokenizing (mirrors the
+# chained String.replace calls in the Java original's cleanup()). Token
+# text is normalized accordingly; offsets are unaffected since every
+# substitution is single-char to single-char.
+CANONICAL_SUBSTITUTIONS = {
+    "\u2019": "'",
+    "\u02BC": "'",
+    "\u2018": "'",
+    # "`": "'",  # commented out in the Java original as well
+    # "\u00B4": "'",
+    "\u201A": ",",  # SINGLE LOW-9 QUOTATION MARK sometimes used as a comma
+    "\u2011": "-",  # we handle \u2013 in tagger so we can base our rule on it
+}
+
 SOFT_HYPHEN_WRAP: str = "\u00AD\n"
 SOFT_HYPHEN_WRAP_SUBST: str = "\uE103"
 
@@ -473,15 +487,8 @@ class UkrainianWordTokenizer:
         return text, urls
 
     def cleanup(self, text: str) -> str:
-        text = (
-            text.replace("\u2019", "'")
-            .replace("\u02BC", "'")
-            .replace("\u2018", "'")
-            # .replace("`", "'")
-            # .replace("´", "'")
-            .replace("\u201A", ",")  # SINGLE LOW-9 QUOTATION MARK sometimes used as a comma
-            .replace("\u2011", "-")  # we handle \u2013 in tagger so we can base our rule on it
-        )
+        for source, target in CANONICAL_SUBSTITUTIONS.items():
+            text = text.replace(source, target)
 
         text = WEIRD_APOSTROPH_PATTERN.sub(rf"\1{NON_BREAKING_PLACEHOLDER2}\2{NON_BREAKING_PLACEHOLDER2}\3", text)
 

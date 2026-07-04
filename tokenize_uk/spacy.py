@@ -33,8 +33,10 @@ import json
 from typing import Iterator, List, Tuple
 
 try:
+    import spacy
     from spacy.language import Language
     from spacy.tokens import Doc
+    from spacy.util import registry
     from spacy.vocab import Vocab
 except ImportError as error:  # pragma: no cover
     raise ImportError(
@@ -44,10 +46,10 @@ except ImportError as error:  # pragma: no cover
 
 from .pipeline import (
     SENTENCE_LANGUAGE_CODE,
-    _WORD_TOKENIZER,
     tokenize_sents_with_spans,
+    tokenize_words_with_spans,
 )
-from . import legacy as _legacy
+from .tokenize_uk import UkrainianWordTokenizer as _WordTokenizer
 
 
 class UkrainianTokenizer:
@@ -63,6 +65,7 @@ class UkrainianTokenizer:
     def __init__(self, vocab: Vocab, *, legacy: bool = False) -> None:
         self.vocab = vocab
         self.legacy = legacy
+        self._tokenizer = _WordTokenizer()  # stateless
 
     def __call__(self, text: str) -> Doc:
         words, spaces = self._words_and_spaces(text)
@@ -84,17 +87,18 @@ class UkrainianTokenizer:
     def _raw_tokens(self, text: str) -> Iterator[str]:
         if self.legacy:
             # The legacy engine drops whitespace and some symbols; to
-            # keep doc.text == text, emit the gaps as whitespace tokens.
+            # keep doc.text == text, emit the gaps between spans as
+            # extra tokens.
             cursor = 0
-            for match in _legacy.WORD_TOKENIZATION_RULES.finditer(text):
-                if match.start() > cursor:
-                    yield text[cursor : match.start()]
-                yield match.group()
-                cursor = match.end()
+            for word, start, end in tokenize_words_with_spans(text, legacy=True):
+                if start > cursor:
+                    yield text[cursor:start]
+                yield word
+                cursor = end
             if cursor < len(text):
                 yield text[cursor:]
         else:
-            yield from _WORD_TOKENIZER.tokenize(text)
+            yield from self._tokenizer.tokenize(text)
 
     # --- minimal serialization so nlp.to_disk()/from_disk() work ---
 
@@ -132,20 +136,13 @@ class TokenizeUkSentencizer:
         self.language_code = language_code
 
     def __call__(self, doc: Doc) -> Doc:
-        if self.legacy:
-            spans = tokenize_sents_with_spans(doc.text, legacy=True)
-        else:
-            spans = tokenize_sents_with_spans(doc.text, language_code=self.language_code)
+        spans = tokenize_sents_with_spans(
+            doc.text, legacy=self.legacy, language_code=self.language_code
+        )
         starts = {start for _, start, _ in spans}
         for i, token in enumerate(doc):
-            doc[i].is_sent_start = i == 0 or token.idx in starts
+            token.is_sent_start = i == 0 or token.idx in starts
         return doc
-
-
-try:
-    from spacy.util import registry
-except ImportError:  # pragma: no cover
-    from spacy import registry
 
 
 @registry.tokenizers("tokenize_uk.UkrainianTokenizer.v1")
@@ -176,8 +173,6 @@ def blank_pipeline(
     A ready-to-use blank Ukrainian pipeline with LanguageTool-grade
     tokenization and sentence segmentation.
     """
-    import spacy
-
     nlp = spacy.blank(
         "uk",
         config={

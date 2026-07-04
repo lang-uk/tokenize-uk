@@ -9,20 +9,20 @@ Python port can be byte-diffed against the exact upstream revision.
 The port and its verification are synced to:
 
 - Upstream file: `languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java`
-- Commit: `0761ec3ecea3e1030fcc391246a8c23d48c91e8d` (2026-04-07)
+- Commit: see [`LT_COMMIT`](LT_COMMIT) (the machine-readable pin used by CI and the drift watchdog)
 - License: LGPL-2.1 (LanguageTool) — which is why the file is fetched on
   demand rather than committed into this MIT repository.
 
 Fetch it (pinned to the sync commit):
 
 ```bash
-curl -sL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
-  https://raw.githubusercontent.com/languagetool-org/languagetool/0761ec3ecea3e1030fcc391246a8c23d48c91e8d/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java
+mkdir -p org/languagetool/tokenizers/uk
+curl -sfL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
+  "https://raw.githubusercontent.com/languagetool-org/languagetool/$(cat LT_COMMIT)/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java"
 ```
 
-When re-syncing the port with a newer LT revision, update the commit
-hash here (and in `docs/design.md`'s sync procedure), re-fetch, and
-re-run the differential.
+When re-syncing the port with a newer LT revision, update `LT_COMMIT`,
+re-fetch, and re-run the differential.
 
 ## Build and run
 

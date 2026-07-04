@@ -1,23 +1,19 @@
 """Tests for the spaCy integration (skipped if spaCy is not installed)."""
 
+import tempfile
 import unittest
 
-try:
-    import spacy  # noqa: F401
+import pytest
 
-    HAS_SPACY = True
-except ImportError:
-    HAS_SPACY = False
+spacy = pytest.importorskip("spacy")
 
 from tokenize_uk import tokenize_sents, tokenize_words
+from tokenize_uk.spacy import UkrainianTokenizer, blank_pipeline
 
 
-@unittest.skipUnless(HAS_SPACY, "spaCy not installed")
 class SpacyIntegrationTest(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        from tokenize_uk.spacy import blank_pipeline
-
         cls.nlp = blank_pipeline()
 
     def test_doc_text_roundtrip(self):
@@ -47,8 +43,6 @@ class SpacyIntegrationTest(unittest.TestCase):
         )
 
     def test_legacy_engine_roundtrip(self):
-        from tokenize_uk.spacy import blank_pipeline
-
         nlp = blank_pipeline(legacy=True)
         text = "Це €дивний\tтекст. Другий."
         doc = nlp(text)
@@ -56,10 +50,6 @@ class SpacyIntegrationTest(unittest.TestCase):
         self.assertEqual(2, len(list(doc.sents)))
 
     def test_serialization_roundtrip(self):
-        import tempfile
-
-        from tokenize_uk.spacy import UkrainianTokenizer
-
         with tempfile.TemporaryDirectory() as tmp:
             self.nlp.to_disk(tmp)
             nlp2 = spacy.load(tmp)

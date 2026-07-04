@@ -12,7 +12,6 @@ from tokenize_uk.__main__ import main
 def run_cli(args, stdin_text):
     stdout = io.StringIO()
     stdin = io.StringIO(stdin_text)
-    stdin.isatty = lambda: False
     with mock.patch.object(sys, "argv", ["tokenize-uk"] + args), \
             mock.patch.object(sys, "stdin", stdin), \
             mock.patch.object(sys, "stdout", stdout):

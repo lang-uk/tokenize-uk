@@ -42,7 +42,8 @@ jobs:
       - name: Build the Java ground-truth harness (pinned LT commit)
         working-directory: scripts/java-harness
         run: |
-          PINNED=$(grep -m1 -oE '[0-9a-f]{40}' README.md)
+          PINNED=$(tr -d '[:space:]' < LT_COMMIT)
+          [[ "$PINNED" =~ ^[0-9a-f]{40}$ ]] || { echo "bad pin: $PINNED"; exit 1; }
           mkdir -p org/languagetool/tokenizers/uk
           curl -sfL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
             "https://raw.githubusercontent.com/languagetool-org/languagetool/$PINNED/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java"
@@ -60,6 +61,8 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
       - name: Install with spaCy extra
         run: pip install -e .[test,spacy]
       - name: Run spaCy integration tests

@@ -18,11 +18,12 @@ from tokenize_uk import (
     tokenize_words,
     tokenize_words_with_spans,
 )
+from tokenize_uk.tokenize_uk import CANONICAL_SUBSTITUTIONS
 
 SAFE_TEXT = st.text(
     alphabet=st.characters(
         blacklist_categories=("Cs", "Co"),
-        blacklist_characters="’ʼ‘‚‑",
+        blacklist_characters="".join(CANONICAL_SUBSTITUTIONS),
     ),
     max_size=200,
 )

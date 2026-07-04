@@ -43,6 +43,12 @@ NON_CONTENT_CHARS = (
 _WORD_TOKENIZER = UkrainianWordTokenizer()
 
 
+def _is_content_token(token: str) -> bool:
+    """The 2.0 output-shape contract: a token counts as content unless
+    it consists entirely of whitespace/invisible characters."""
+    return bool(token.strip(NON_CONTENT_CHARS))
+
+
 @functools.lru_cache(maxsize=1)
 def _get_sentence_splitter():
     from choppa import DEFAULT_SRX_RULESET, SrxDocument, SrxTextIterator
@@ -65,7 +71,7 @@ def tokenize_words(string: str, *, legacy: bool = False) -> List[str]:
     if legacy:
         return _legacy.tokenize_words(string)
     tokens = _WORD_TOKENIZER.tokenize(str(string))
-    return [token for token in tokens if token.strip(NON_CONTENT_CHARS)]
+    return [token for token in tokens if _is_content_token(token)]
 
 
 def tokenize_sents(
@@ -91,9 +97,10 @@ def tokenize_sents(
     """
     if legacy:
         return _legacy.tokenize_sents(string)
-    document, iterator_class = _get_sentence_splitter()
-    segments = iterator_class(document, language_code, str(string))
-    return [stripped for segment in segments if (stripped := segment.strip())]
+    return [
+        sentence
+        for sentence, _, _ in tokenize_sents_with_spans(string, language_code=language_code)
+    ]
 
 
 def tokenize_words_with_spans(
@@ -125,7 +132,7 @@ def tokenize_words_with_spans(
     # substitutions are 1:1), so a running offset is exact.
     for token in _WORD_TOKENIZER.tokenize(string):
         end = offset + len(token)
-        if token.strip(NON_CONTENT_CHARS):
+        if _is_content_token(token):
             spans.append((token, offset, end))
         offset = end
     return spans

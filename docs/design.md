@@ -36,8 +36,8 @@ methodology (see its `docs/design.md` for the rationale):
    `scripts/java-harness/` contains a tiny driver and a stubbed
    one-method `Tokenizer` interface; LT's `UkrainianWordTokenizer.java`
    is fetched pinned to the sync commit
-   (`0761ec3ecea3e1030fcc391246a8c23d48c91e8d`, see
-   `scripts/java-harness/README.md` for the command and provenance) —
+   (recorded in `scripts/java-harness/LT_COMMIT`, see its README for
+   the fetch command and provenance) —
    no Maven, no LT jars, and the ground truth is exactly the synced
    revision, not a lagging release:
 
