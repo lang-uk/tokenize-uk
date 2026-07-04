@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-test = ["pytest"]
+test = ["pytest", "hypothesis"]
 
 [project.scripts]
 tokenize-uk = "tokenize_uk.__main__:main"

@@ -18,7 +18,7 @@ pipeline.
 """
 
 import functools
-from typing import List
+from typing import List, Tuple
 
 from . import legacy as _legacy
 from .tokenize_uk import HORIZONTAL_SPACE, VERTICAL_SPACE, UkrainianWordTokenizer
@@ -96,6 +96,76 @@ def tokenize_sents(
     return [stripped for segment in segments if (stripped := segment.strip())]
 
 
+def tokenize_words_with_spans(
+    string: str, *, legacy: bool = False
+) -> List[Tuple[str, int, int]]:
+    """
+    Like :func:`tokenize_words`, but returns ``(word, start, end)``
+    tuples with character offsets into the input string.
+
+    Offsets are exact for both engines. With the default engine the
+    token *text* may be normalized relative to the input slice (the
+    tokenizer canonicalizes a few apostrophe/quote characters 1:1), so
+    use the offsets, not the token text, to index into the input.
+
+    :param string: Text to tokenize
+    :param legacy: use the 2016 regex engine instead
+    :return: (word, start, end) tuples
+    """
+    string = str(string)
+    if legacy:
+        return [
+            (match.group(), match.start(), match.end())
+            for match in _legacy.WORD_TOKENIZATION_RULES.finditer(string)
+        ]
+    spans: List[Tuple[str, int, int]] = []
+    offset = 0
+    # The raw token stream concatenates back to the input (placeholder
+    # characters the engine inserts are dropped from it, and all other
+    # substitutions are 1:1), so a running offset is exact.
+    for token in _WORD_TOKENIZER.tokenize(string):
+        end = offset + len(token)
+        if token.strip(NON_CONTENT_CHARS):
+            spans.append((token, offset, end))
+        offset = end
+    return spans
+
+
+def tokenize_sents_with_spans(
+    string: str,
+    *,
+    legacy: bool = False,
+    language_code: str = SENTENCE_LANGUAGE_CODE,
+) -> List[Tuple[str, int, int]]:
+    """
+    Like :func:`tokenize_sents`, but returns ``(sentence, start, end)``
+    tuples with character offsets into the input string.
+
+    :param string: Text to tokenize
+    :param legacy: use the 2016 heuristic engine instead
+    :param language_code: SRX language key (see :func:`tokenize_sents`)
+    :return: (sentence, start, end) tuples
+    """
+    string = str(string)
+    spans: List[Tuple[str, int, int]] = []
+    if legacy:
+        cursor = 0
+        for sentence in _legacy.tokenize_sents(string):
+            start = string.index(sentence, cursor)
+            cursor = start + len(sentence)
+            spans.append((sentence, start, cursor))
+        return spans
+    document, iterator_class = _get_sentence_splitter()
+    offset = 0
+    for segment in iterator_class(document, language_code, string):
+        stripped = segment.strip()
+        if stripped:
+            lead = len(segment) - len(segment.lstrip())
+            spans.append((stripped, offset + lead, offset + lead + len(stripped)))
+        offset += len(segment)
+    return spans
+
+
 def tokenize_text(string: str, *, legacy: bool = False) -> List[List[List[str]]]:
     """
     Tokenize input text to paragraphs, sentences and words.
@@ -117,4 +187,10 @@ def tokenize_text(string: str, *, legacy: bool = False) -> List[List[List[str]]]
     return rez
 
 
-__all__ = ["tokenize_words", "tokenize_sents", "tokenize_text"]
+__all__ = [
+    "tokenize_words",
+    "tokenize_sents",
+    "tokenize_text",
+    "tokenize_words_with_spans",
+    "tokenize_sents_with_spans",
+]

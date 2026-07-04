@@ -25,3 +25,29 @@ jobs:
         run: |
           printf 'Це проф. Артюхов. Він приїхав у м. Київ.' | tokenize-uk -l sents | tee out.txt
           printf 'Це проф. Артюхов.\nВін приїхав у м. Київ.\n' | diff - out.txt
+
+  java-identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install
+        run: pip install -e .
+      - name: Build the Java ground-truth harness (pinned LT commit)
+        working-directory: scripts/java-harness
+        run: |
+          PINNED=$(grep -m1 -oE '[0-9a-f]{40}' README.md)
+          curl -sL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
+            "https://raw.githubusercontent.com/languagetool-org/languagetool/$PINNED/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java"
+          javac -encoding UTF-8 Driver.java org/languagetool/tokenizers/Tokenizer.java \
+            org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java
+      - name: Byte-identity gate vs LT Java
+        run: |
+          java -cp scripts/java-harness Driver < tests/data/ci_corpus/uk_wikipedia.txt > java.txt
+          python scripts/benchmark.py tests/data/ci_corpus/uk_wikipedia.txt --java java.txt

@@ -29,6 +29,16 @@ tokenize_text(string, legacy=False) -> list[list[list[str]]]
 Paragraphs → sentences → words. Paragraphs are split on single newlines
 (historical behavior); empty paragraphs are dropped.
 
+```python
+tokenize_words_with_spans(string, legacy=False) -> list[tuple[str, int, int]]
+tokenize_sents_with_spans(string, legacy=False, language_code="uk_two") -> list[tuple[str, int, int]]
+```
+Same tokenization, plus `(text, start, end)` character offsets into the
+input — for NER and anything that needs alignment. Offsets are exact
+for both engines; with the default engine the token *text* may be
+apostrophe-normalized relative to the input slice, so index the input
+by the offsets rather than searching for the token text.
+
 ## Classes and modules
 
 ```python

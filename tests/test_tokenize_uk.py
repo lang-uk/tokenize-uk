@@ -137,3 +137,36 @@ class LegacyModuleTest(unittest.TestCase):
 class NonBreakingSlashTest(unittest.TestCase):
     def test_ldnr(self):
         self.assertEqual(["бойовики", "Л/ДНР", "напали"], tokenize_words("бойовики Л/ДНР напали"))
+
+class SpansTest(unittest.TestCase):
+    def test_word_spans(self):
+        from tokenize_uk import tokenize_words_with_spans
+
+        text = "Це проф. Артюхов."
+        spans = tokenize_words_with_spans(text)
+        self.assertEqual(
+            [("Це", 0, 2), ("проф.", 3, 8), ("Артюхов", 9, 16), (".", 16, 17)],
+            spans,
+        )
+        for word, start, end in spans:
+            self.assertEqual(text[start:end], word)
+
+    def test_sent_spans(self):
+        from tokenize_uk import tokenize_sents_with_spans
+
+        text = "Перше речення.  Друге речення!"
+        spans = tokenize_sents_with_spans(text)
+        self.assertEqual(
+            [("Перше речення.", 0, 14), ("Друге речення!", 16, 30)], spans
+        )
+
+    def test_legacy_spans(self):
+        from tokenize_uk import tokenize_sents_with_spans, tokenize_words_with_spans
+
+        text = "Одне речення. Друге тут."
+        for word, start, end in tokenize_words_with_spans(text, legacy=True):
+            self.assertEqual(text[start:end], word)
+        self.assertEqual(
+            [("Одне речення.", 0, 13), ("Друге тут.", 14, 24)],
+            tokenize_sents_with_spans(text, legacy=True),
+        )

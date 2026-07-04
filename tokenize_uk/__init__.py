@@ -1,4 +1,10 @@
-from .pipeline import tokenize_words, tokenize_sents, tokenize_text
+from .pipeline import (
+    tokenize_words,
+    tokenize_sents,
+    tokenize_text,
+    tokenize_words_with_spans,
+    tokenize_sents_with_spans,
+)
 from .tokenize_uk import UkrainianWordTokenizer
 from . import legacy
 
@@ -10,6 +16,8 @@ __all__ = [
     "tokenize_words",
     "tokenize_sents",
     "tokenize_text",
+    "tokenize_words_with_spans",
+    "tokenize_sents_with_spans",
     "UkrainianWordTokenizer",
     "legacy",
 ]
