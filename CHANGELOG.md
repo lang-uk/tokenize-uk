@@ -15,6 +15,10 @@
 - `UkrainianWordTokenizer` exposed for raw LT-compatible tokenization
   (whitespace tokens included).
 - `tokenize-uk` console script (`-l words|sents|text`, `--legacy`).
+- spaCy integration (`pip install tokenize_uk[spacy]`):
+  `tokenize_uk.spacy.blank_pipeline()`, a registered drop-in tokenizer
+  and a sentence-boundary component, with exact `doc.text` round-trip
+  and full serialization support.
 - `tokenize_words_with_spans` / `tokenize_sents_with_spans`: character
   offsets into the input for NER-style alignment, both engines.
 - Note: only the package-level import path is preserved —

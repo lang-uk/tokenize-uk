@@ -45,9 +45,16 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "hypothesis"]
+spacy = ["spacy>=3.5"]
 
 [project.scripts]
 tokenize-uk = "tokenize_uk.__main__:main"
+
+[project.entry-points."spacy_factories"]
+tokenize_uk_sentencizer = "tokenize_uk.spacy"
+
+[project.entry-points."spacy_tokenizers"]
+"tokenize_uk.UkrainianTokenizer.v1" = "tokenize_uk.spacy"
 
 [project.urls]
 Homepage = "https://github.com/lang-uk/tokenize-uk"

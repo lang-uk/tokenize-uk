@@ -72,6 +72,28 @@ UkrainianWordTokenizer().tokenize("а б")
 # ['а', ' ', 'б']
 ```
 
+## Using with spaCy
+
+```bash
+pip install tokenize_uk[spacy]
+```
+
+```python
+from tokenize_uk.spacy import blank_pipeline
+
+nlp = blank_pipeline()
+doc = nlp("Це проф. Артюхов. Він приїхав у м. Київ.")
+[t.text for t in doc]              # LT-grade word tokens
+[sent.text for sent in doc.sents]  # LT-grade sentences
+```
+
+`doc.text` round-trips the input exactly, token offsets are exact, and
+`nlp.to_disk()`/`spacy.load()` work (the tokenizer is a registered
+spaCy factory). You can also drop `UkrainianTokenizer` or the
+`tokenize_uk_sentencizer` component into an existing pipeline — with
+the caveat that pretrained statistical components were trained on
+spaCy's own tokenization.
+
 ## Verification and performance
 
 The word tokenizer is compared byte-for-byte against LanguageTool

@@ -53,6 +53,18 @@ to LT master's Java implementation (see [design.md](design.md)).
 `tokenize_uk.legacy` — the 2016 engines (`tokenize_words`,
 `tokenize_sents`, `tokenize_text`), preserved byte-for-byte.
 
+## spaCy integration (`tokenize_uk.spacy`, requires the `spacy` extra)
+
+- `blank_pipeline(legacy=False, language_code="uk_two") -> Language` —
+  blank `uk` pipeline with the LT tokenizer and sentencizer wired in,
+  fully serializable (`nlp.to_disk()` / `spacy.load()`).
+- `UkrainianTokenizer(vocab, legacy=False)` — the tokenizer itself;
+  registered as `tokenize_uk.UkrainianTokenizer.v1` in spaCy's
+  tokenizer registry.
+- `tokenize_uk_sentencizer` — pipeline component setting sentence
+  boundaries from choppa's SRX segmentation; config keys `legacy`,
+  `language_code`.
+
 ## CLI
 
 ```

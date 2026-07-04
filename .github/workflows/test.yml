@@ -52,3 +52,15 @@ jobs:
         run: |
           java -cp scripts/java-harness Driver < tests/data/ci_corpus/uk_wikipedia.txt > java.txt
           python scripts/benchmark.py tests/data/ci_corpus/uk_wikipedia.txt --java java.txt
+
+  spacy-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install with spaCy extra
+        run: pip install -e .[test,spacy]
+      - name: Run spaCy integration tests
+        run: pytest tests/test_spacy.py -q
