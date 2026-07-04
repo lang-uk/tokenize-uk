@@ -15,6 +15,10 @@
 - `UkrainianWordTokenizer` exposed for raw LT-compatible tokenization
   (whitespace tokens included).
 - `tokenize-uk` console script (`-l words|sents|text`, `--legacy`).
+- Note: only the package-level import path is preserved —
+  `from tokenize_uk import tokenize_words` works as before, but the 0.x
+  physical path `from tokenize_uk.tokenize_uk import tokenize_words`
+  now refers to the word-tokenizer module instead.
 - Modern packaging (`pyproject.toml`, py.typed, Python 3.9–3.14), CI,
   tag-triggered trusted publishing; benchmark script and the Java
   ground-truth harness ship in `scripts/`.

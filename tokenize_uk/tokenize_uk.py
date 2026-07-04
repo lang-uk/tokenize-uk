@@ -12,10 +12,8 @@ SPLIT_CHARS: str = (
     + '|(?<!\uE109)["«»„”“]'
     + "|[\u2000-\u200F"  # quotes have special cases
     + "\u201A\u2020-\u202F\u2030-\u206F"
-    + "\u2400-\u27FF"  # TODO: Verify Control Pictures
-    # + String.valueOf(Character.toChars(0x1F000))
+    + "\u2400-\u27FF"  # Control Pictures
     + chr(0x1F000) + "-"
-    # + String.valueOf(Character.toChars(0x1FFFF))  # TODO: Verify Emojis
     + chr(0x1FFFF) + "\uf000-\uffff" + "\uE110])(?!\uE120)"  # private unicode area: U+E000..U+F8FF
 )
 
@@ -80,8 +78,6 @@ N_DASH_SPACE_REPL: str = rf"\1{BREAKING_PLACEHOLDER}\2"
 # dots in numbers
 DOTTED_NUMBERS_PATTERN: re.Pattern = re.compile(r"([\d])\.([\d])")
 DOTTED_NUMBERS_PATTERN3: re.Pattern = re.compile(r"([\d])\.([\d]+)\.([\d])")
-
-DOTTED_NUMBERS_REPL: str = rf"\1{NON_BREAKING_DOT_SUBST}\2"
 
 # colon in numbers
 COLON_NUMBERS_PATTERN: re.Pattern = re.compile(r"([\d]):([\d])")
@@ -156,7 +152,8 @@ INITIALS_DOT_REPL_RSP_2: str = rf"\1{BREAKING_PLACEHOLDER}\2{NON_BREAKING_DOT_SU
 INITIALS_DOT_REPL_RSP_1: str = rf"\1{BREAKING_PLACEHOLDER}\2{NON_BREAKING_DOT_SUBST}{BREAKING_PLACEHOLDER}"
 
 # село, місто, річка (якщо з цифрою: секунди, метри, роки) - з роками складно
-ABBR_DOT_INVALID_DOT_PATTERN: re.Pattern = re.compile("((?:[0-9]|кв\\.|куб\\.)[\\s\u00A0\u202F]+(?:[смкд]|мк)?м)\\.(.)")
+# commented out in the Java original as well:
+# ABBR_DOT_INVALID_DOT_PATTERN: re.Pattern = re.compile("((?:[0-9]|кв\\.|куб\\.)[\\s\u00A0\u202F]+(?:[смкд]|мк)?м)\\.(.)")
 ABBR_DOT_KUB_SM_PATTERN: re.Pattern = re.compile(
     "(кв|куб)\\.([" + HORIZONTAL_SPACE + VERTICAL_SPACE + "]*(?:[смкд]|мк)?м)"
 )
@@ -224,7 +221,8 @@ COMPOUND_WITH_QUOTES1: re.Pattern = re.compile('([а-яіїє]-)([«"„])([а-�
 COMPOUND_WITH_QUOTES2: re.Pattern = re.compile(r'([«"„])([а-яіїєґ0-9\'-]+)([»\"“])(-[а-яіїє])', re.I | re.U)
 
 # Сьогодні (у четвер. - Ред.), вранці.
-ABBR_DOT_PATTERN8: re.Pattern = re.compile(r"([\s\u00A0\u202F]+[–—-][\s\u00A0\u202F]+(?:[Рр]ед|[Аа]вт))\.([\)\]])")
+# commented out in the Java original as well:
+# ABBR_DOT_PATTERN8: re.Pattern = re.compile(r"([\s\u00A0\u202F]+[–—-][\s\u00A0\u202F]+(?:[Рр]ед|[Аа]вт))\.([\)\]])")
 ABBR_DOT_RED_AVT_PATTERN: re.Pattern = re.compile(
     "([" + HORIZONTAL_SPACE + VERTICAL_SPACE + r"]+(?:[Рр]ед|[Аа]вт))\.(["
     + HORIZONTAL_SPACE
@@ -321,11 +319,10 @@ class UkrainianWordTokenizer:
 
         # check for urls
         if "http" in text or "www" in text or "@" in text or "ftp" in text:  # https?|ftp
-            # Matcher matcher = URL_PATTERN.matcher(text)
             url_replace_char: int = URL_START_REPLACE_CHAR
             match = URL_PATTERN.search(text)
 
-            # TODO: barely efficient, rewrite with re.sub callback?
+            # mirrors the Java matcher loop; intentionally not rewritten
             while match:
                 replace_char: str = chr(url_replace_char)
                 urls[replace_char] = match.group()
@@ -355,7 +352,6 @@ class UkrainianWordTokenizer:
             text = YEAR_WITH_R.sub(rf"\1{BREAKING_PLACEHOLDER}\2", text)
 
         # leave only potential hashtags together
-        # TODO: difference between replace and replaceAll.
         text = text.replace("#", BREAKING_PLACEHOLDER + "#")
 
         # leave numbers with following % together
@@ -434,20 +430,6 @@ class UkrainianWordTokenizer:
             text,
         )
 
-        # Matcher spacedDecimalMatcher = DECIMAL_SPACE_PATTERN.matcher(text);
-        # if( spacedDecimalMatcher.find() ) {
-        #     StringBuffer sb = new StringBuffer();
-        #     do {
-        #         String splitNumber = spacedDecimalMatcher.group(0);
-        #         String splitNumberAdjusted = splitNumber.replace(' ', NON_BREAKING_SPACE_SUBST);
-        #         splitNumberAdjusted = splitNumberAdjusted.replace('\u00A0', NON_BREAKING_SPACE_SUBST);
-        #         splitNumberAdjusted = splitNumberAdjusted.replace('\u202F', NON_BREAKING_SPACE_SUBST);
-        #         spacedDecimalMatcher.appendReplacement(sb, splitNumberAdjusted);
-        #     } while( spacedDecimalMatcher.find() );
-
-        #     spacedDecimalMatcher.appendTail(sb);
-        #     text = sb.toString();
-        # }
 
         # 12:25
         if ":" in text:

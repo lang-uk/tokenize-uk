@@ -3,10 +3,7 @@ from tokenize_uk import UkrainianWordTokenizer
 
 
 class TokenizeUkTest(unittest.TestCase):
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        cls.tokenizer = UkrainianWordTokenizer()
+    tokenizer = UkrainianWordTokenizer()
 
     def test_tokenize_url(self):
         url: str = "http://youtube.com:80/herewego?start=11&quality=high%3F"
@@ -166,7 +163,6 @@ class TokenizeUkTest(unittest.TestCase):
         test_list = self.tokenizer.tokenize("стін\u00AD\nку")
         self.assertEqual(["стін\u00AD\nку"], test_list)
 
-        # TODO: re-enable
         test_list = self.tokenizer.tokenize('п"яний')
         self.assertEqual(['п"яний'], test_list)
 
@@ -287,7 +283,6 @@ class TokenizeUkTest(unittest.TestCase):
         test_list = self.tokenizer.tokenize("911 тис.грн. з бюджету")
         self.assertEqual(["911", " ", "тис.", "грн", ".", " ", "з", " ", "бюджету"], test_list)
 
-        # TODO: re-enable
         test_list = self.tokenizer.tokenize("за $400\n  тис., здавалося б")
         self.assertEqual(["за", " ", "$", "400", "\n", " ", " ", "тис.", ",", " ", "здавалося", " ", "б"], test_list)
 

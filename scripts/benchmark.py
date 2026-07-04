@@ -37,6 +37,9 @@ def main() -> int:
     mb = args.corpus.stat().st_size / 1e6
     print(f"{len(lines)} lines, {n_tokens} tokens in {elapsed:.2f}s ({mb / elapsed:.2f} MB/s)")
 
+    if not (args.out or args.java):
+        return 0
+
     rendered = ["\x01".join(t) for t in tokenized]
 
     if args.out:

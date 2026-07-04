@@ -37,16 +37,24 @@ def main() -> None:
     if sys.stdin.isatty() and args.input is sys.stdin:
         print("reading from stdin...", file=sys.stderr)
 
-    text = args.input.read()
-
     if args.level == "words":
-        for token in tokenize_words(text, legacy=args.legacy):
-            print(token)
+        # Stream line by line: the word tokenizer is designed for
+        # sentence/line-sized inputs (its URL handling rescans the whole
+        # text per URL, which is quadratic on large single strings).
+        for line in args.input:
+            tokens = tokenize_words(line.rstrip("\n"), legacy=args.legacy)
+            if tokens:
+                sys.stdout.write("\n".join(tokens) + "\n")
     elif args.level == "sents":
-        for sentence in tokenize_sents(text, legacy=args.legacy):
+        for sentence in tokenize_sents(args.input.read(), legacy=args.legacy):
             print(sentence)
     else:
-        json.dump(tokenize_text(text, legacy=args.legacy), sys.stdout, ensure_ascii=False, indent=1)
+        json.dump(
+            tokenize_text(args.input.read(), legacy=args.legacy),
+            sys.stdout,
+            ensure_ascii=False,
+            indent=1,
+        )
         print()
 
 

@@ -89,5 +89,27 @@ class DefaultEngineTest(unittest.TestCase):
         self.assertEqual(2, len(result))
 
 
-if __name__ == "__main__":
-    unittest.main()
+class InvisibleTokenTest(unittest.TestCase):
+    """Invisible characters common in scraped web text must not leak
+    into the word stream (shape parity with the 2016 engine, which
+    never emitted them)."""
+
+    def test_zero_width_space(self):
+        self.assertEqual(
+            ["слово", "друге"], tokenize_words("слово​друге")
+        )
+        self.assertEqual(
+            tokenize_words("слово​друге", legacy=True),
+            tokenize_words("слово​друге"),
+        )
+
+    def test_leading_bom(self):
+        self.assertEqual(["Слово"], tokenize_words("﻿Слово"))
+
+    def test_sentence_language_code(self):
+        # uk_one: a single line break ends a paragraph.
+        text = "Заголовок без крапки\nПерше речення."
+        self.assertEqual(
+            ["Заголовок без крапки", "Перше речення."],
+            tokenize_sents(text, language_code="uk_one"),
+        )

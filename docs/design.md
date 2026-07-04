@@ -4,7 +4,7 @@
 
 `tokenize_uk/tokenize_uk.py` is a line-by-line port of LanguageTool's
 [`UkrainianWordTokenizer.java`](https://github.com/languagetool-org/languagetool/blob/master/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java)
-(synced to LT master as of 2026-04-07), keeping the original's
+(synced to LT commit `0761ec3e`, 2026-04-07), keeping the original's
 structure: a battery of pre-processing regexes hides characters that
 must not split tokens (decimal commas, dots in dates and abbreviations,
 colons in times, slashes in `с/г`, ...) behind private-use Unicode
@@ -33,13 +33,16 @@ methodology (see its `docs/design.md` for the rationale):
 1. **LT's own unit tests**, ported from `UkrainianWordTokenizerTest.java`
    (15 test methods, in `tests/test_word_tokenizer.py`).
 2. **Corpus-level byte-diff against the Java original.**
-   `scripts/java-harness/` contains LT master's
-   `UkrainianWordTokenizer.java` compiled against a stubbed one-method
-   `Tokenizer` interface plus a tiny driver — no Maven, no LT jars, and
-   the ground truth is exactly master, not a lagging release:
+   `scripts/java-harness/` contains a tiny driver and a stubbed
+   one-method `Tokenizer` interface; LT's `UkrainianWordTokenizer.java`
+   is fetched pinned to the sync commit
+   (`0761ec3ecea3e1030fcc391246a8c23d48c91e8d`, see
+   `scripts/java-harness/README.md` for the command and provenance) —
+   no Maven, no LT jars, and the ground truth is exactly the synced
+   revision, not a lagging release:
 
    ```bash
-   cd scripts/java-harness
+   cd scripts/java-harness   # fetch command in its README.md
    javac -encoding UTF-8 Driver.java org/languagetool/tokenizers/Tokenizer.java \
        org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java
    java -cp . Driver < corpus.txt > java.txt

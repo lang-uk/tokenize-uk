@@ -14,11 +14,14 @@ LanguageTool `UkrainianWordTokenizer` port with whitespace tokens
 filtered out. `legacy=True`: the 2016 regex rules.
 
 ```python
-tokenize_sents(string, legacy=False) -> list[str]
+tokenize_sents(string, legacy=False, language_code="uk_two") -> list[str]
 ```
 Sentences, stripped of surrounding whitespace. Default engine: choppa's
-`SrxTextIterator` with LanguageTool's `segment.srx`, language key
-`uk_two`. `legacy=True`: the 2016 punctuation-plus-uppercase heuristic.
+`SrxTextIterator` with LanguageTool's `segment.srx`. `language_code`
+selects the SRX key: `uk_two` (paragraphs end at two line breaks, the
+LanguageTool default) or `uk_one` (every line break ends a paragraph).
+`legacy=True`: the 2016 punctuation-plus-uppercase heuristic.
+All keyword arguments are keyword-only.
 
 ```python
 tokenize_text(string, legacy=False) -> list[list[list[str]]]
@@ -51,9 +54,13 @@ tokenize-uk [input-file] [-l words|sents|text] [--legacy]
 
 ## Notes
 
-- The first call of a default-engine function pays a one-time cost:
-  compiling the word-tokenizer patterns and (for sentences) parsing the
-  bundled SRX rules via choppa (~0.2 s). Both are cached module-wide.
+- Importing the package compiles the word-tokenizer patterns (~15 ms);
+  the first sentence call additionally parses the bundled SRX rules via
+  choppa (~0.2-0.4 s, cached module-wide). choppa itself is imported
+  lazily, so `import tokenize_uk` stays fast.
+- Only the package-level API is stable: since 2.0,
+  `from tokenize_uk.tokenize_uk import tokenize_words` (the 0.x physical
+  path) no longer works — import from `tokenize_uk` directly.
 - Instances of `UkrainianWordTokenizer` are stateless and thread-safe;
   the pipeline caches are write-once.
 - Dependencies: `regex` (variable-length lookbehind, Unicode classes)
