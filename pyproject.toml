@@ -1,0 +1,62 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tokenize_uk"
+version = "2.0.0"
+description = "Ukrainian tokenization: paragraphs, sentences and words, with LanguageTool-grade engines"
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+requires-python = ">=3.9"
+authors = [
+    { name = "Vsevolod Dyomkin" },
+    { name = "Dmytro Chaplynskyi", email = "chaplinsky.dmitry@gmail.com" },
+]
+keywords = [
+    "tokenizer",
+    "word tokenizer",
+    "sentence tokenizer",
+    "ukrainian",
+    "natural language processing",
+    "languagetool",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "Natural Language :: Ukrainian",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Text Processing :: Linguistic",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+]
+dependencies = [
+    "regex>=2022.8.17",
+    "choppa-srx>=1.0.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+tokenize-uk = "tokenize_uk.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/lang-uk/tokenize-uk"
+Repository = "https://github.com/lang-uk/tokenize-uk"
+Issues = "https://github.com/lang-uk/tokenize-uk/issues"
+Changelog = "https://github.com/lang-uk/tokenize-uk/blob/master/CHANGELOG.md"
+
+[tool.setuptools]
+packages = ["tokenize_uk"]
+
+[tool.setuptools.package-data]
+tokenize_uk = ["py.typed"]

@@ -1,0 +1,27 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install
+        run: pip install -e .[test]
+      - name: Run tests
+        run: pytest tests/ -q
+      - name: CLI smoke test
+        run: |
+          printf 'Це проф. Артюхов. Він приїхав у м. Київ.' | tokenize-uk -l sents | tee out.txt
+          printf 'Це проф. Артюхов.\nВін приїхав у м. Київ.\n' | diff - out.txt
