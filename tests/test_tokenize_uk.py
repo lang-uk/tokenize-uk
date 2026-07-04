@@ -113,3 +113,27 @@ class InvisibleTokenTest(unittest.TestCase):
             ["Заголовок без крапки", "Перше речення."],
             tokenize_sents(text, language_code="uk_one"),
         )
+
+class LegacyModuleTest(unittest.TestCase):
+    """tokenize_uk.legacy is public API on its own."""
+
+    def test_legacy_tokenize_text_direct(self):
+        from tokenize_uk import legacy
+
+        result = legacy.tokenize_text("Речення одне. Речення два.\nДругий абзац.")
+        self.assertEqual(
+            [
+                [["Речення", "одне", "."], ["Речення", "два", "."]],
+                [["Другий", "абзац", "."]],
+            ],
+            result,
+        )
+        # The pipeline's legacy=True path must agree with the module.
+        self.assertEqual(
+            result, tokenize_text("Речення одне. Речення два.\nДругий абзац.", legacy=True)
+        )
+
+
+class NonBreakingSlashTest(unittest.TestCase):
+    def test_ldnr(self):
+        self.assertEqual(["бойовики", "Л/ДНР", "напали"], tokenize_words("бойовики Л/ДНР напали"))
