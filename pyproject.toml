@@ -45,7 +45,7 @@ dependencies = [
 
 [project.optional-dependencies]
 test = ["pytest", "hypothesis"]
-spacy = ["spacy>=3.5"]
+spacy = ["spacy>=3.5", "click>=8"]
 
 [project.scripts]
 tokenize-uk = "tokenize_uk.__main__:main"
