@@ -43,7 +43,8 @@ jobs:
         working-directory: scripts/java-harness
         run: |
           PINNED=$(grep -m1 -oE '[0-9a-f]{40}' README.md)
-          curl -sL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
+          mkdir -p org/languagetool/tokenizers/uk
+          curl -sfL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
             "https://raw.githubusercontent.com/languagetool-org/languagetool/$PINNED/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java"
           javac -encoding UTF-8 Driver.java org/languagetool/tokenizers/Tokenizer.java \
             org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java
