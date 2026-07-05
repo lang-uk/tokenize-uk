@@ -64,3 +64,6 @@ venv
 .DS_Store
 
 \#*
+
+# uv artifacts (library: no lockfile committed)
+uv.lock
