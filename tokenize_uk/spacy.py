@@ -49,7 +49,6 @@ from .pipeline import (
     tokenize_sents_with_spans,
     tokenize_words_with_spans,
 )
-from .tokenize_uk import UkrainianWordTokenizer as _WordTokenizer
 
 
 class UkrainianTokenizer:
@@ -57,15 +56,17 @@ class UkrainianTokenizer:
     A spaCy tokenizer backed by the LanguageTool word tokenizer port
     (or, with ``legacy=True``, the 2016 regex engine).
 
-    ``doc.text`` always equals the input text exactly: the raw
-    LanguageTool token stream concatenates back to the input, so token
-    offsets are exact.
+    ``doc.text`` always equals the input text exactly: tokens are cut
+    from the input at the engine's exact character offsets, and the
+    gaps between them become whitespace tokens. Token text is
+    therefore verbatim input — the engine's apostrophe/quote
+    canonicalization (see :func:`tokenize_words_with_spans`) is not
+    applied to it.
     """
 
     def __init__(self, vocab: Vocab, *, legacy: bool = False) -> None:
         self.vocab = vocab
         self.legacy = legacy
-        self._tokenizer = _WordTokenizer()  # stateless
 
     def __call__(self, text: str) -> Doc:
         words, spaces = self._words_and_spaces(text)
@@ -85,20 +86,18 @@ class UkrainianTokenizer:
         return words, spaces
 
     def _raw_tokens(self, text: str) -> Iterator[str]:
-        if self.legacy:
-            # The legacy engine drops whitespace and some symbols; to
-            # keep doc.text == text, emit the gaps between spans as
-            # extra tokens.
-            cursor = 0
-            for word, start, end in tokenize_words_with_spans(text, legacy=True):
-                if start > cursor:
-                    yield text[cursor:start]
-                yield word
-                cursor = end
-            if cursor < len(text):
-                yield text[cursor:]
-        else:
-            yield from self._tokenizer.tokenize(text)
+        # Both engines report exact character offsets, so emit input
+        # slices rather than the engines' token text (which may drop
+        # symbols or canonicalize apostrophes), plus the gaps between
+        # spans as extra tokens — doc.text == text by construction.
+        cursor = 0
+        for _, start, end in tokenize_words_with_spans(text, legacy=self.legacy):
+            if start > cursor:
+                yield text[cursor:start]
+            yield text[start:end]
+            cursor = end
+        if cursor < len(text):
+            yield text[cursor:]
 
     # --- minimal serialization so nlp.to_disk()/from_disk() work ---
 

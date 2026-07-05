@@ -88,6 +88,8 @@ doc = nlp("Це проф. Артюхов. Він приїхав у м. Київ.
 ```
 
 `doc.text` round-trips the input exactly, token offsets are exact, and
+token text is taken verbatim from the input (unlike `tokenize_words`,
+which canonicalizes a few apostrophe/quote characters).
 `nlp.to_disk()`/`spacy.load()` work (the tokenizer is a registered
 spaCy factory). You can also drop `UkrainianTokenizer` or the
 `tokenize_uk_sentencizer` component into an existing pipeline — with

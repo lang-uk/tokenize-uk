@@ -23,8 +23,19 @@ class SpacyIntegrationTest(unittest.TestCase):
             " з пробілу",
             "12.03.2022 о 15:30 — і т. д.",
             "",
+            # Characters the engine canonicalizes must survive verbatim:
+            # typographic apostrophes, single low quote, non-breaking hyphen.
+            "п’ять хвилин, мʼясо",
+            "об‘єднати ‚так‘ і навпаки",
+            "як‑небудь",
         ]:
             self.assertEqual(text, self.nlp(text).text)
+
+    def test_token_text_is_verbatim_input(self):
+        text = "п’ять"
+        doc = self.nlp(text)
+        self.assertEqual(["п’ять"], [t.text for t in doc])
+        self.assertEqual(0, doc[0].idx)
 
     def test_tokens_match_tokenize_words(self):
         text = "Це проф. Артюхов, і т. д. — 12.03.2022!"
