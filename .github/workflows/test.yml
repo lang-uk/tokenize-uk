@@ -1,0 +1,77 @@
+name: Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        experimental: [false]
+        include:
+          # Early warning for the next Python (beta/rc until October);
+          # failures don't block the build.
+          - python-version: "3.15"
+            experimental: true
+    continue-on-error: ${{ matrix.experimental }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true
+      - name: Install
+        run: pip install -e .[test]
+      - name: Run tests
+        run: pytest tests/ -q
+      - name: CLI smoke test
+        run: |
+          printf 'Це проф. Артюхов. Він приїхав у м. Київ.' | tokenize-uk -l sents | tee out.txt
+          printf 'Це проф. Артюхов.\nВін приїхав у м. Київ.\n' | diff - out.txt
+
+  java-identity:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Install
+        run: pip install -e .
+      - name: Build the Java ground-truth harness (pinned LT commit)
+        working-directory: scripts/java-harness
+        run: |
+          PINNED=$(tr -d '[:space:]' < LT_COMMIT)
+          [[ "$PINNED" =~ ^[0-9a-f]{40}$ ]] || { echo "bad pin: $PINNED"; exit 1; }
+          mkdir -p org/languagetool/tokenizers/uk
+          curl -sfL -o org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java \
+            "https://raw.githubusercontent.com/languagetool-org/languagetool/$PINNED/languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java"
+          javac -encoding UTF-8 Driver.java org/languagetool/tokenizers/Tokenizer.java \
+            org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java
+      - name: Byte-identity gate vs LT Java
+        run: |
+          java -cp scripts/java-harness Driver < tests/data/ci_corpus/uk_wikipedia.txt > java.txt
+          python scripts/benchmark.py tests/data/ci_corpus/uk_wikipedia.txt --java java.txt
+
+  spacy-integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+      - name: Install with spaCy extra
+        run: pip install -e .[test,spacy]
+      - name: Run spaCy integration tests
+        run: pytest tests/test_spacy.py -q

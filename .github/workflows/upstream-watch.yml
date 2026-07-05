@@ -1,0 +1,47 @@
+name: Upstream drift watch
+
+# Weekly check that LanguageTool's UkrainianWordTokenizer.java still
+# matches the commit this port is synced to; opens an issue when
+# upstream moves. This exists because the port once drifted 27 commits
+# (2022-2026) without anyone noticing.
+
+on:
+  schedule:
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compare pinned sync commit with LanguageTool master
+        id: diff
+        run: |
+          JAVA_PATH="languagetool-language-modules/uk/src/main/java/org/languagetool/tokenizers/uk/UkrainianWordTokenizer.java"
+          PINNED=$(tr -d '[:space:]' < scripts/java-harness/LT_COMMIT)
+          [[ "$PINNED" =~ ^[0-9a-f]{40}$ ]] || { echo "bad pin: $PINNED"; exit 1; }
+          LATEST=$(curl -s "https://api.github.com/repos/languagetool-org/languagetool/commits?path=$JAVA_PATH&per_page=1" \
+            | python3 -c "import json,sys; print(json.load(sys.stdin)[0]['sha'])")
+          echo "pinned=$PINNED latest=$LATEST"
+          if [ "$PINNED" = "$LATEST" ]; then
+            echo "drifted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "drifted=true" >> "$GITHUB_OUTPUT"
+            echo "latest=$LATEST" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Open issue if drifted
+        if: steps.diff.outputs.drifted == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          TITLE="Upstream UkrainianWordTokenizer.java has moved past the pinned sync commit"
+          OPEN=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number --jq length)
+          if [ "$OPEN" = "0" ]; then
+            gh issue create --title "$TITLE" \
+              --body "LanguageTool master's UkrainianWordTokenizer.java is now at ${{ steps.diff.outputs.latest }}, past the pinned sync commit in scripts/java-harness/LT_COMMIT. Diff the Java between the two commits, apply the drift to tokenize_uk/tokenize_uk.py per docs/design.md, port test changes, re-run the corpus differential, and update scripts/java-harness/LT_COMMIT."
+          fi
