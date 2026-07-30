@@ -130,3 +130,27 @@ Reproduce with `scripts/benchmark.py` (see `docs/design.md`).
   behind the sentence layer
 
 MIT licensed.
+
+<!-- citekit:start -->
+## Як цитувати
+
+Якщо ви використовуєте **tokenize-uk: Ukrainian tokenizer**, будь ласка, процитуйте статтю, а не посилання на репозиторій — це єдиний спосіб, у який внесок стає видимим у наукометрії.
+
+> Chaplynskyi, D. (2023). Introducing UberText 2.0: A Corpus of Modern Ukrainian at Scale. In Proceedings of the Second Ukrainian Natural Language Processing Workshop (UNLP), pages 1–10. Association for Computational Linguistics. https://doi.org/10.18653/v1/2023.unlp-1.1
+
+```bibtex
+@inproceedings{chaplynskyi-2023-introducing,
+    title     = "Introducing {U}ber{T}ext 2.0: A Corpus of {M}odern {U}krainian at Scale",
+    author    = "Chaplynskyi, Dmytro",
+    editor    = "Romanyshyn, Mariana",
+    booktitle = "Proceedings of the Second Ukrainian Natural Language Processing Workshop (UNLP)",
+    month     = may,
+    year      = "2023",
+    address   = "Dubrovnik, Croatia",
+    publisher = "Association for Computational Linguistics",
+    url       = "https://aclanthology.org/2023.unlp-1.1/",
+    doi       = "10.18653/v1/2023.unlp-1.1",
+    pages     = "1--10"
+}
+```
+<!-- citekit:end -->

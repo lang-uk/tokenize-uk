@@ -1,0 +1,31 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: 'tokenize-uk: Ukrainian tokenizer'
+url: git@github.com:lang-uk/tokenize-uk
+type: software
+authors:
+- family-names: Chaplynskyi
+  given-names: Dmytro
+  orcid: https://orcid.org/0009-0000-0869-0999
+- name: lang-uk
+license: MIT
+repository-code: git@github.com:lang-uk/tokenize-uk
+references:
+- type: conference-paper
+  title: 'Introducing UberText 2.0: A Corpus of Modern Ukrainian at Scale'
+  authors:
+  - family-names: Chaplynskyi
+    given-names: Dmytro
+    orcid: https://orcid.org/0009-0000-0869-0999
+  collection-title: Proceedings of the Second Ukrainian Natural Language Processing Workshop (UNLP)
+  collection-type: proceedings
+  publisher:
+    name: Association for Computational Linguistics
+  conference:
+    name: Proceedings of the Second Ukrainian Natural Language Processing Workshop (UNLP)
+  year: 2023
+  month: 5
+  start: 1
+  end: 10
+  url: https://aclanthology.org/2023.unlp-1.1/
+  doi: 10.18653/v1/2023.unlp-1.1
